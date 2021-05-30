@@ -24,6 +24,7 @@ import transactionAPI from "api/transaction";
 import calTotal from "utils/calTotal";
 import payoutAPI from "api/payout";
 import orderHistoryAPI from "api/orderHistory";
+import { set } from "js-cookie";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -105,6 +106,12 @@ function OrderDetail() {
     transportation: {},
     orderHistories: [],
   });
+
+  const [isShow1, setIsShow1] = useState(true);
+  const [isShow2, setIsShow2] = useState(false);
+  const [isShow3, setIsShow3] = useState(false);
+  const [isShow4, setIsShow4] = useState(true);
+  const [isShow5, setIsShow5] = useState(false);
 
   const { search } = useLocation();
   const { id } = qs.parse(search.replace(/^\?/, ""));
@@ -229,101 +236,118 @@ function OrderDetail() {
             order.orderDetails[0].product.user.province !==
               order.user.province && (
               <>
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    createOrderHistory({
-                      orderId: order.id,
-                      name: `Đã rời kho ${order.orderDetails[0].product.user.province}`,
-                    });
-                    showSuccess("Đã cập nhật");
-                  }}
-                  className={classes["action-btn"]}
-                >
-                  Đã rời kho {order.orderDetails[0].product.user.province}
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    createOrderHistory({
-                      orderId: order.id,
-                      name: `Đã đến kho ${order.user.province}`,
-                    });
-                    showSuccess("Đã cập nhật");
-                  }}
-                  className={classes["action-btn"]}
-                >
-                  Đã đến kho {order.user.province}
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={async () => {
-                    if (order.paymentMethod === "Paypal") {
-                      const response = await payoutAPI.payout({
-                        amount: calTotal(order.orderDetails),
-                      });
-                      createTransaction({
-                        userId: order.orderDetails[0].product.userId,
+                {isShow1 && (
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      createOrderHistory({
                         orderId: order.id,
-                        payoutId: response.data,
-                        amount: calTotal(order.orderDetails),
-                        status: "Đang xử lý",
+                        name: `Đã rời kho ${order.orderDetails[0].product.user.province}`,
                       });
-                    }
-                    updateOrderStatus(4, order.id);
-                    createOrderHistory({
-                      orderId: order.id,
-                      name: "Đã giao hàng",
-                    });
-                  }}
-                  className={classes["action-btn"]}
-                >
-                  Xác nhận đã giao
-                </Button>
+                      showSuccess("Đã cập nhật");
+                      setIsShow2(true);
+                      setIsShow1(false);
+                    }}
+                    className={classes["action-btn"]}
+                  >
+                    Đã rời kho {order.orderDetails[0].product.user.province}
+                  </Button>
+                )}
+                {isShow2 && (
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      createOrderHistory({
+                        orderId: order.id,
+                        name: `Đã đến kho ${order.user.province}`,
+                      });
+                      showSuccess("Đã cập nhật");
+                      setIsShow3(true);
+                      setIsShow1(false);
+                      setIsShow2(false);
+                    }}
+                    className={classes["action-btn"]}
+                  >
+                    Đã đến kho {order.user.province}
+                  </Button>
+                )}
+                {isShow3 && (
+                  <Button
+                    variant="contained"
+                    onClick={async () => {
+                      if (order.paymentMethod === "Paypal") {
+                        const response = await payoutAPI.payout({
+                          amount: calTotal(order.orderDetails),
+                        });
+                        createTransaction({
+                          userId: order.orderDetails[0].product.userId,
+                          orderId: order.id,
+                          payoutId: response.data,
+                          amount: calTotal(order.orderDetails),
+                          status: "Đang xử lý",
+                        });
+                      }
+                      updateOrderStatus(4, order.id);
+                      createOrderHistory({
+                        orderId: order.id,
+                        name: "Đã giao hàng",
+                      });
+                    }}
+                    className={classes["action-btn"]}
+                  >
+                    Xác nhận đã giao
+                  </Button>
+                )}
               </>
             )}
           {order.statusId === 3 &&
             order.orderDetails[0].product.user.province ===
               order.user.province && (
               <>
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    createOrderHistory({
-                      orderId: order.id,
-                      name: `Đang giao trong nội thành ${order.user.province}`,
-                    });
-                    showSuccess("Đã cập nhật");
-                  }}
-                  className={classes["action-btn"]}
-                >
-                  Đang giao trong nội thành
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={async () => {
-                    if (order.paymentMethod === "Paypal") {
-                      const response = await payoutAPI.payout({
-                        amount: calTotal(order.orderDetails),
-                      });
-                      createTransaction({
-                        userId: order.orderDetails[0].product.userId,
+                {isShow4 && (
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      createOrderHistory({
                         orderId: order.id,
-                        payoutId: response.data,
-                        amount: calTotal(order.orderDetails),
-                        status: "Đang xử lý",
+                        name: `Đang giao trong nội thành ${order.user.province}`,
                       });
-                    }
-                    updateOrderStatus(4, order.id);
-                    createOrderHistory({
-                      orderId: order.id,
-                      name: "Đã giao hàng",
-                    });
-                  }}
-                  className={classes["action-btn"]}
-                >
-                  Xác nhận đã giao
-                </Button>
+                      showSuccess("Đã cập nhật");
+                      setIsShow5(true);
+                      setIsShow4(false);
+                    }}
+                    className={classes["action-btn"]}
+                  >
+                    Đang giao trong nội thành
+                  </Button>
+                )}
+                {isShow5 && (
+                  <Button
+                    variant="contained"
+                    onClick={async () => {
+                      if (order.paymentMethod === "Paypal") {
+                        const response = await payoutAPI.payout({
+                          amount: calTotal(order.orderDetails),
+                        });
+                        createTransaction({
+                          userId: order.orderDetails[0].product.userId,
+                          orderId: order.id,
+                          payoutId: response.data,
+                          amount: calTotal(order.orderDetails),
+                          status: "Đang xử lý",
+                        });
+                      }
+                      updateOrderStatus(4, order.id);
+                      createOrderHistory({
+                        orderId: order.id,
+                        name: "Đã giao hàng",
+                      });
+                    }}
+                    className={classes["action-btn"]}
+                  >
+                    Xác nhận đã giao
+                  </Button>
+                )}
               </>
             )}
           {order.statusId === 11 && (
